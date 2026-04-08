@@ -12,7 +12,7 @@
 ## Phases
 
 ### Phase 1: Backend Foundation & DB Schema
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Setup FastAPI, Postgres connection, Pydantic models & SQL Tables.
 **Requirements**: REQ-05, REQ-09
 
