@@ -1,38 +1,34 @@
-# Debug Session: Uvicorn Execution Failure
+# Debug Session: Tailwind PostCSS Configuration Error
 
 ## Symptom
-The user attempted to start the backend using `cd backend && uvicorn main:app --reload` in PowerShell, resulting in two distinct errors:
-1. `uvicorn` is not recognized as an internal external command.
-2. The token `&&` is not a valid statement separator.
+The Vite development server fails to compile CSS, throwing a PostCSS internal server error: `"It looks like you're trying to use tailwindcss directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package..."`
 
-**When:** Attempting to boot the local development server after completing Milestone v1.0.
-**Expected:** The FastAPI server boots on port 8000 successfully.
-**Actual:** PowerShell rejects the `&&` operator syntax and cannot locate the `uvicorn` executable in the PATH.
+**When:** Running `npm run dev` in the `/frontend` directory.
+**Expected:** The Vite server boots and processes the injected Tailwind imports.
+**Actual:** Vite crashes at the CSS transformation layer because Tailwind v4 recently decoupled its PostCSS plugin.
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | Python dependencies (`requirements.txt`) were never installed entirely in this workspace shell, so the global/virtual environment lacks `uvicorn`. | 95% | ELIMINATED (Dependencies now actively injected globally into Python environment) |
-| 2 | The user's terminal is running Windows PowerShell 5.1, which does not support the `&&` chained command operator (requires `;` instead). | 99% | CONFIRMED |
+| 1 | The `postcss.config.js` is trying to use `tailwindcss` natively as a plugin, which fails in versions >=4.0 that require the dedicated `@tailwindcss/postcss` package. | 100% | ELIMINATED (Fix Applied) |
 
 ## Attempts
 
 ### Attempt 1
-**Testing:** H1 & H2 — Resolve PowerShell Syntax and Missing Dependencies.
+**Testing:** H1 — Upgrade to `@tailwindcss/postcss`.
 **Action:** 
-1. The orchestrator executed `python -m pip install -r backend/requirements.txt` to properly inject all MVP Phase modules (FastAPI, uvicorn, SQLModel).
-2. The orchestrator formulated explicit PowerShell terminal parameters for the user's run context circumventing the `&&` token failure.
+1. Executed `npm install -D @tailwindcss/postcss` inside `frontend`.
+2. Updated `frontend/postcss.config.js` to explicitly invoke `@tailwindcss/postcss` instead of `tailwindcss`.
 **Conclusion:** CONFIRMED
 
 ## Resolution
 
 **Root Cause:**
-1. During the fast 24-hr sprint, we generated the application architecture but hadn't yet installed requirements directly in your local environment.
-2. Windows PowerShell (default) parses `&&` as a syntax error instead of a bash-like chain command.
+Tailwind CSS >v4.0.0 fundamentally refactored their PostCSS integration module out of the main package to improve standalone speed, requiring manual intervention in existing `postcss.config.js` setups to target the new module name.
 
 **Fix:**
-1. The GSD framework forcefully ran `pip install` on the `backend/requirements.txt`.
-2. Changed the local launch script parameters to use `;` inside PowerShell contexts or split line execution.
+1. Installed the missing `@tailwindcss/postcss` dependency package.
+2. Modified the plugin target in `postcss.config.js` to standard v4 syntax.
 
-**Verified:** The dependencies are downloaded and the executable `uvicorn` is mapped locally.
+**Verified:** The Vite pre-transform pipeline successfully scans dependencies without crashing on the syntax.
