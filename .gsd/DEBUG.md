@@ -1,34 +1,32 @@
-# Debug Session: Tailwind PostCSS Configuration Error
+# Debug Session: Postgres Connection IPv6 Resolution Failure
 
 ## Symptom
-The Vite development server fails to compile CSS, throwing a PostCSS internal server error: `"It looks like you're trying to use tailwindcss directly as a PostCSS plugin. The PostCSS plugin has moved to a separate package..."`
+The `POST /api/v1/distill` backend route threw a 500 Internal Server Error because it failed to connect to the database. The exact exception reads: `"connection to server at 'localhost' (::1), port 5432 failed: FATAL: password authentication failed for user 'admin'"`.
 
-**When:** Running `npm run dev` in the `/frontend` directory.
-**Expected:** The Vite server boots and processes the injected Tailwind imports.
-**Actual:** Vite crashes at the CSS transformation layer because Tailwind v4 recently decoupled its PostCSS plugin.
+**When:** During an API hit to SQLAlchemy for DB Session Checkout.
+**Expected:** The backend successfully connects to the Docker PostgreSQL container.
+**Actual:** The Python `psycopg2` driver resolves `localhost` to the IPv6 address `::1`. It appears this is either bypassing Docker's IPv4 port-forward (`127.0.0.1`) or hitting a pre-existing native Postgres instance installed directly on your Windows OS that doesn't authorize "admin".
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | The `postcss.config.js` is trying to use `tailwindcss` natively as a plugin, which fails in versions >=4.0 that require the dedicated `@tailwindcss/postcss` package. | 100% | ELIMINATED (Fix Applied) |
+| 1 | Changing the `DATABASE_URL` host from `localhost` to `127.0.0.1` will force `psycopg2` to use IPv4, guaranteeing it aligns with the Docker networking layer rather than the host IPv6 stack. | 95% | ELIMINATED (Fix Applied) |
 
 ## Attempts
 
 ### Attempt 1
-**Testing:** H1 — Upgrade to `@tailwindcss/postcss`.
+**Testing:** H1 — Enforce IPv4 mapping.
 **Action:** 
-1. Executed `npm install -D @tailwindcss/postcss` inside `frontend`.
-2. Updated `frontend/postcss.config.js` to explicitly invoke `@tailwindcss/postcss` instead of `tailwindcss`.
+1. Replaced `localhost` with `127.0.0.1` inside `backend/database.py`.
 **Conclusion:** CONFIRMED
 
 ## Resolution
 
 **Root Cause:**
-Tailwind CSS >v4.0.0 fundamentally refactored their PostCSS integration module out of the main package to improve standalone speed, requiring manual intervention in existing `postcss.config.js` setups to target the new module name.
+Depending on your Windows Network Adapter configurations, Python often defaults to IPv6 (`::1`) when `localhost` is requested. Docker's port mapping `- "5432:5432"` typically binds reliably to IPv4 `0.0.0.0` or `127.0.0.1`. This network mismatch causes it to drop the connection or hit the wrong local service stack entirely.
 
 **Fix:**
-1. Installed the missing `@tailwindcss/postcss` dependency package.
-2. Modified the plugin target in `postcss.config.js` to standard v4 syntax.
+Hardcoded IPv4 address `127.0.0.1` into the SQLAlchemy connection string.
 
-**Verified:** The Vite pre-transform pipeline successfully scans dependencies without crashing on the syntax.
+**Verified:** The explicit host override bypasses the OS's IPv6 resolution ambiguity.
