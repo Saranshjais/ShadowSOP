@@ -21,7 +21,7 @@ def distill_sop(source_text: str, context_hints: str = None) -> SOPDistilled:
         prompt += f"Context Hints: {context_hints}\n"
         
     response = client.models.generate_content(
-        model="gemini-1.5-pro",
+        model="gemini-3-flash-preview",
         contents=prompt,
         config=genai.types.GenerateContentConfig(
             system_instruction=system_instruction,

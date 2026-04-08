@@ -66,3 +66,18 @@
 
 ### Constraints
 - **Notifications:** Integrate `sonner` via UI libraries immediately to provide polished "SOP Vaulted Successfully" toasts to maximize demo factor.
+
+## Phase 5 Decisions
+
+**Date:** 2026-04-08
+
+### Scope
+- **Markdown Export:** Expand functionality to permit Frontend-Only Export generation from BOTH `Forge.tsx` (unsaved drafts) and `Vault.tsx` (permanent assets).
+- **Loading UI:** Adopt a Hybrid strategy. `Vault.tsx` employs `Skeleton` UI patterns for predictable layout pacing, while `Forge.tsx` outputs dynamic "AI-at-work" pulsing text logic to mediate latency psychology.
+
+### Approach
+- **AI Engine Upgrade:** Modify `ai_service.py` pointing inference toward the ultra-fast `gemini-3-flash-preview` instead of `1.5-pro` to significantly decrease processing cycles and adhere rigidly to MVP execution speed priorities.
+- **Export Utility:** Pure frontend JavaScript functional mapping to Text Blob strings bypassing Backend API overhead.
+
+### Constraints
+- **Error Transparency:** Map explicit Toaster notifications targeting LLM failures (e.g. rate limits) with actionable hints to maintain the high-end Apple-meets-Linear professional aesthetic.
