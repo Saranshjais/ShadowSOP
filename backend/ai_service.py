@@ -1,0 +1,32 @@
+import os
+from dotenv import load_dotenv
+from google import genai
+from .schemas import SOPDistilled
+
+load_dotenv()
+
+client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
+
+def distill_sop(source_text: str, context_hints: str = None) -> SOPDistilled:
+    system_instruction = (
+        "You are a Technical Operations Consultant. "
+        "Extract a structured SOP from the provided conversational exhaust. "
+        "Identify hidden dependencies and missing information. "
+        "Return the completely structured process."
+    )
+    
+    prompt = f"Source Text: {source_text}\n"
+    if context_hints:
+        prompt += f"Context Hints: {context_hints}\n"
+        
+    response = client.models.generate_content(
+        model="gemini-1.5-pro",
+        contents=prompt,
+        config=genai.types.GenerateContentConfig(
+            system_instruction=system_instruction,
+            response_mime_type="application/json",
+            response_schema=SOPDistilled,
+        ),
+    )
+    
+    return SOPDistilled.model_validate_json(response.text)

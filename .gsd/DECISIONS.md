@@ -19,3 +19,18 @@
 ### Constraints
 - Development must be heavily time-boxed (24-hour sprint).
 - Local infrastructure is simplified via a basic `docker-compose.yml` for PostgreSQL, avoiding complex setups.
+
+## Phase 2 Decisions
+
+**Date:** 2026-04-08
+
+### Scope
+- **LLM Provider:** Gemini 1.5 Pro, utilizing its massive context window. Keys managed via `.env` and `python-dotenv`.
+- **Endpoint Contract:** The `/distill` endpoint follows a "Review First, Save Second" pattern (Synchronous execution, returning structured JSON for Frontend review without immediate DB persistence).
+
+### Approach
+- **LLM Extraction Integration:** Option A - Native Structured Outputs.
+- **Reason:** Leverages `google-genai` SDK and Pydantic schema enforcing to bypass markdown regex parsing entirely, resulting in robust, predictable JSON returns and minimizing server errors.
+
+### Constraints
+- **Latency:** Acceptable to block for 10-15s during inference. Frontend will handle the loading UX.
