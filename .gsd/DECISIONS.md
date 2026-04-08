@@ -34,3 +34,20 @@
 
 ### Constraints
 - **Latency:** Acceptable to block for 10-15s during inference. Frontend will handle the loading UX.
+
+## Phase 3 Decisions
+
+**Date:** 2026-04-08
+
+### Scope
+- **Shadcn/UI Integration:** Decided to use the Shadcn CLI to immediately construct the necessary components component (`button`, `card`, `textarea`, `scroll-area`).
+- **"The Forge" Capabilities:** Editor allows Full Add/Remove/Edit functionality.
+
+### Approach
+- **Draft Editor Mechanics:** Option A — Controlled React State using `react-hook-form` and `useFieldArray`.
+- **Reason:** Provides snappy workspace UX for managing arrays of SOP steps without messy raw JSON input views.
+- **Backend CORS:** Integrate `CORSMiddleware` in `main.py` referencing `http://localhost:5173`.
+- **Prompt Adjustments:** Update the Gemini system instruction to specify acting as a "Senior Systems Architect" seeking hidden dependencies.
+
+### Constraints
+- **Design Aesthetics:** Strongly adhere to the "Cyber-Zinc" theme (`bg-zinc-950`, `text-emerald-500`, `font-mono`) for a high-end minimalist Apple-meets-Linear vibe.
