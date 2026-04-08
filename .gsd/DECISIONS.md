@@ -51,3 +51,18 @@
 
 ### Constraints
 - **Design Aesthetics:** Strongly adhere to the "Cyber-Zinc" theme (`bg-zinc-950`, `text-emerald-500`, `font-mono`) for a high-end minimalist Apple-meets-Linear vibe.
+
+## Phase 4 Decisions
+
+**Date:** 2026-04-08
+
+### Scope
+- **Frontend Routing:** Utilize Shadcn `Tabs` to build a "Single-Page Studio" (Forge / Vault) to avoid global state and React Router bloat.
+- **Data Rendering:** "The Vault" will render Read-Only views with an "Edit/Remix" button which immediately re-injects the SOP into The Forge for overrides.
+
+### Approach
+- **Vault Save Operation:** Implement Atomic Transaction logic in `POST /sops` rather than leveraging implicit ORM recursion to guarantee stability under pressure.
+- **Handshake Logic:** Modify `verify_api_key` to strictly resolve the exact `company_id` for DB attachment.
+
+### Constraints
+- **Notifications:** Integrate `sonner` via UI libraries immediately to provide polished "SOP Vaulted Successfully" toasts to maximize demo factor.

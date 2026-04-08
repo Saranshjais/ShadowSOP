@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 
-// Quick local mocks of Shadcn components to bypass NPM CLI failure during sprint
+// MOCKED SHADCN COMPONENTS
 const Button = ({ children, className, variant = "default", ...props }: any) => {
   const base = "inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:pointer-events-none disabled:opacity-50";
   const variants: any = {
@@ -13,17 +13,15 @@ const Button = ({ children, className, variant = "default", ...props }: any) => 
 };
 
 const Card = ({ children, className }: any) => (
-  <div className={`rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 shadow ${className}`}>{children}</div>
+  <div className={`rounded-xl border border-zinc-800 bg-zinc-900 text-zinc-100 shadow flex flex-col h-full ${className}`}>{children}</div>
 );
 const CardHeader = ({ children }: any) => <div className="flex flex-col space-y-1.5 p-6">{children}</div>;
 const CardTitle = ({ children, className }: any) => <h3 className={`font-mono font-semibold leading-none tracking-tight ${className}`}>{children}</h3>;
-const CardContent = ({ children, className }: any) => <div className={`p-6 pt-0 ${className}`}>{children}</div>;
-
+const CardContent = ({ children, className }: any) => <div className={`p-6 pt-0 flex-1 flex flex-col ${className}`}>{children}</div>;
 const Textarea = ({ className, ...props }: any) => (
   <textarea className={`flex w-full rounded-md border border-zinc-700 bg-black px-3 py-2 text-sm text-emerald-400 font-mono shadow-sm placeholder:text-zinc-600 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500 disabled:cursor-not-allowed disabled:opacity-50 min-h-[80px] ${className}`} {...props} />
 );
 
-// Form Types
 type SOPStep = {
   order: number;
   action: string;
@@ -34,9 +32,10 @@ type ForgeFormValues = {
   steps: SOPStep[];
 };
 
-export default function Forge() {
+export default function Forge({ onSave }: { onSave?: () => void }) {
   const [sourceText, setSourceText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [title, setTitle] = useState("Distilled SOP");
   
   const { control, reset, register } = useForm<ForgeFormValues>({
@@ -69,21 +68,49 @@ export default function Forge() {
     }
   };
 
+  const handleSaveToVault = async () => {
+    setIsSaving(true);
+    try {
+      const payload = {
+        title: title,
+        description: "Drafted via Forge",
+        category: "General",
+        steps: fields,
+        edge_cases: [],
+        missing_info_queries: []
+      };
+      
+      const response = await fetch("http://localhost:8000/api/v1/sops", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": "dev-test-key-123"
+        },
+        body: JSON.stringify(payload)
+      });
+      
+      if (response.ok) {
+        setSourceText("");
+        reset({ steps: [] });
+        if (onSave) onSave();
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-zinc-950 p-8 font-sans">
-      <h1 className="text-3xl font-bold mb-8 text-white tracking-tight text-center">
-        ShadowSOP <span className="text-emerald-500 underline decoration-emerald-500/50">Forge</span>
-      </h1>
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-7xl mx-auto">
-        
-        {/* LEFT COMPONENT: The Chaos */}
+    <div className="max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 items-stretch h-[80vh]">
         <Card>
           <CardHeader>
-            <CardTitle>Conversational Exhaust (Input)</CardTitle>
+            <CardTitle>Conversational Exhaust</CardTitle>
           </CardHeader>
           <CardContent>
             <Textarea 
-              className="min-h-[500px] resize-none"
+              className="flex-1 resize-none mb-4"
               placeholder="Paste Zoom transcripts, Slack dumps, or messy ideas here..."
               value={sourceText}
               onChange={(e: any) => setSourceText(e.target.value)}
@@ -91,52 +118,62 @@ export default function Forge() {
             <Button 
               onClick={handleDistill} 
               disabled={isLoading || !sourceText}
-              className="w-full mt-6 bg-emerald-600 hover:bg-emerald-500 font-bold tracking-wide"
+              className="w-full bg-emerald-600 hover:bg-emerald-500 font-bold tracking-wide mt-auto"
             >
               {isLoading ? "Running Distillation Engine..." : "Distill to SOP"}
             </Button>
           </CardContent>
         </Card>
 
-        {/* RIGHT COMPONENT: The Order */}
         <Card>
           <CardHeader>
             <CardTitle>{title}</CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {fields.map((field, index) => (
-              <div key={field.id} className="flex flex-row gap-4 items-start p-4 bg-black rounded-lg border border-zinc-800">
-                <span className="text-emerald-500 font-bold font-mono pt-2">
-                  {index + 1}.
-                </span>
-                <div className="flex-1 space-y-3">
-                  <input 
-                    {...register(`steps.${index}.action` as const)} 
-                    className="w-full bg-transparent border-b border-zinc-800 text-zinc-100 font-medium focus:outline-none focus:border-emerald-500 py-1"
-                    placeholder="Action step description"
-                  />
-                  <input 
-                    {...register(`steps.${index}.context_notes` as const)} 
-                    className="w-full bg-transparent text-sm text-zinc-500 focus:outline-none"
-                    placeholder="Additional context or notes (optional)"
-                  />
+          <CardContent className="overflow-hidden flex flex-col p-4 pr-1">
+            <div className="overflow-y-auto flex-1 space-y-4 pr-4 custom-scrollbar">
+              {fields.map((field, index) => (
+                <div key={field.id} className="flex flex-row gap-4 items-start p-4 bg-black rounded-lg border border-zinc-800 transition-colors hover:border-zinc-700 group">
+                  <span className="text-emerald-500 font-bold font-mono pt-2 w-6 text-right">
+                    {index + 1}.
+                  </span>
+                  <div className="flex-1 space-y-3">
+                    <input 
+                      {...register(`steps.${index}.action` as const)} 
+                      className="w-full bg-transparent border-b border-zinc-800 text-zinc-100 font-medium focus:outline-none focus:border-emerald-500 py-1"
+                      placeholder="Action step description"
+                    />
+                    <input 
+                      {...register(`steps.${index}.context_notes` as const)} 
+                      className="w-full bg-transparent text-sm text-zinc-500 focus:outline-none"
+                      placeholder="Additional metadata (optional)"
+                    />
+                  </div>
+                  <Button variant="ghost" onClick={() => remove(index)} className="text-red-500 hover:bg-red-950/30 px-2 mt-1 py-1 h-auto opacity-0 group-hover:opacity-100 transition-opacity">
+                    ✕
+                  </Button>
                 </div>
-                <Button variant="ghost" onClick={() => remove(index)} className="text-red-500 hover:bg-red-950 px-2 mt-1 py-1 h-auto">
-                  ✕
-                </Button>
-              </div>
-            ))}
+              ))}
+              
+              <Button 
+                onClick={() => append({ order: fields.length + 1, action: "", context_notes: "" })}
+                variant="outline"
+                className="w-full border-dashed border-zinc-700 text-zinc-400 hover:text-emerald-400 hover:border-emerald-400/50 bg-transparent h-12"
+              >
+                + Add Manual Step
+              </Button>
+            </div>
             
-            <Button 
-              onClick={() => append({ order: fields.length + 1, action: "", context_notes: "" })}
-              variant="outline"
-              className="w-full border-dashed border-zinc-700 text-zinc-400 hover:text-emerald-400 hover:border-emerald-400 h-12"
-            >
-              + Add Manual Step
-            </Button>
+            <div className="pt-4 border-t border-zinc-800 mt-4 pr-4">
+              <Button 
+                onClick={handleSaveToVault}
+                disabled={fields.length === 0 || isSaving}
+                className="w-full bg-white text-zinc-950 font-bold hover:bg-zinc-200 shadow-lg"
+              >
+                {isSaving ? "Archiving..." : "Save to Vault"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
-
       </div>
     </div>
   );
