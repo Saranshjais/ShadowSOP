@@ -27,7 +27,7 @@
 **Requirements**: REQ-04
 
 ### Phase 4: CRUD Completion & The Vault
-**Status**: ⬜ Not Started
+**Status**: ✅ Complete
 **Objective**: Saving drafts to SQL, Library View, Delete/Edit functionality.
 **Requirements**: REQ-06, REQ-07
 
