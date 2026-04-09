@@ -20,11 +20,12 @@ const SkeletonCards = () => (
 );
 
 export default function Vault() {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
   const [sops, setSops] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://localhost:8000/api/v1/sops", {
+    fetch(`${API_BASE_URL}/api/v1/sops`, {
       headers: { "x-api-key": "dev-test-key-123" }
     })
       .then(r => r.json())

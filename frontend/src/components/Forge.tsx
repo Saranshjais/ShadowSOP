@@ -39,6 +39,7 @@ type ForgeFormValues = {
 };
 
 export default function Forge({ onSave, onError }: { onSave?: () => void, onError?: (msg: string) => void }) {
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
   const [sourceText, setSourceText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -56,7 +57,7 @@ export default function Forge({ onSave, onError }: { onSave?: () => void, onErro
   const handleDistill = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch("http://localhost:8000/api/v1/distill", {
+      const response = await fetch(`${API_BASE_URL}/api/v1/distill`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -96,7 +97,7 @@ export default function Forge({ onSave, onError }: { onSave?: () => void, onErro
         missing_info_queries: []
       };
       
-      const response = await fetch("http://localhost:8000/api/v1/sops", {
+      const response = await fetch(`${API_BASE_URL}/api/v1/sops`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -2,6 +2,7 @@ from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from typing import List
+import os
 
 from auth import verify_api_key
 from schemas import DistillRequest, SOPDistilled
@@ -15,7 +16,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[os.getenv("CORS_ORIGINS", "*")],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
