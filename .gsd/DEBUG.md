@@ -1,32 +1,25 @@
-# Debug Session: Postgres Connection IPv6 Resolution Failure
+# Debug Session: Gemini API Key Leaked / Revoked (403 Error)
 
 ## Symptom
-The `POST /api/v1/distill` backend route threw a 500 Internal Server Error because it failed to connect to the database. The exact exception reads: `"connection to server at 'localhost' (::1), port 5432 failed: FATAL: password authentication failed for user 'admin'"`.
+The `POST /api/v1/distill` backend route threw a `500 Internal Server Error` during the LLM processing phase. The underlying Python traceback reveals:
+`google.genai.errors.ClientError: 403 PERMISSION_DENIED. {'error': {'code': 403, 'message': 'Your API key was reported as leaked. Please use another API key.', 'status': 'PERMISSION_DENIED'}}`
 
-**When:** During an API hit to SQLAlchemy for DB Session Checkout.
-**Expected:** The backend successfully connects to the Docker PostgreSQL container.
-**Actual:** The Python `psycopg2` driver resolves `localhost` to the IPv6 address `::1`. It appears this is either bypassing Docker's IPv4 port-forward (`127.0.0.1`) or hitting a pre-existing native Postgres instance installed directly on your Windows OS that doesn't authorize "admin".
+**When:** When clicking "Distill to SOP" in The Forge.
+**Expected:** The backend successfully contacts Gemini 1.5 Pro/Flash to distill the text.
+**Actual:** Google blocked the request because the API key was flagged as leaked to the public.
 
 ## Hypotheses
 
 | # | Hypothesis | Likelihood | Status |
 |---|------------|------------|--------|
-| 1 | Changing the `DATABASE_URL` host from `localhost` to `127.0.0.1` will force `psycopg2` to use IPv4, guaranteeing it aligns with the Docker networking layer rather than the host IPv6 stack. | 95% | ELIMINATED (Fix Applied) |
-
-## Attempts
-
-### Attempt 1
-**Testing:** H1 — Enforce IPv4 mapping.
-**Action:** 
-1. Replaced `localhost` with `127.0.0.1` inside `backend/database.py`.
-**Conclusion:** CONFIRMED
+| 1 | The project does not have a `.gitignore` file, causing the local `.env` file (which holds the API Key) to be pushed to the public GitHub repository during the earlier Phase 6 push. | 99% | CONFIRMED |
 
 ## Resolution
 
 **Root Cause:**
-Depending on your Windows Network Adapter configurations, Python often defaults to IPv6 (`::1`) when `localhost` is requested. Docker's port mapping `- "5432:5432"` typically binds reliably to IPv4 `0.0.0.0` or `127.0.0.1`. This network mismatch causes it to drop the connection or hit the wrong local service stack entirely.
+When we ran `git commit` and `git push` earlier to get the code onto GitHub for Render, the `.env` file (which contains the `GEMINI_API_KEY`) was accidentally included in the version control history because there is no `.gitignore` file blocking it. Google immediately detected the leaked key and auto-revoked it to protect your account.
 
-**Fix:**
-Hardcoded IPv4 address `127.0.0.1` into the SQLAlchemy connection string.
-
-**Verified:** The explicit host override bypasses the OS's IPv6 resolution ambiguity.
+**Fix Details Needed:**
+1. We must delete the `.env` file from the remote GitHub repository cache.
+2. We must create a `.gitignore` file to ensure `.env`, `__pycache__`, and `node_modules` are never pushed again.
+3. You must generate a BRAND NEW Gemini API Key from Google AI Studio and put it in your local `.env` file.
