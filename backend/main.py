@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from typing import List
@@ -24,8 +24,10 @@ app.add_middleware(
 
 @app.post("/api/v1/distill", response_model=SOPDistilled)
 def distill_endpoint(request: DistillRequest, company_id: str = Depends(verify_api_key)):
-    return distill_sop(request.source_text, request.context_hints)
-
+    try:
+        return distill_sop(request.source_text, request.context_hints)
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=f"Gemini AI Service Error: {str(e)}")
 @app.post("/api/v1/sops")
 def save_sop(
     payload: SOPDistilled, 
