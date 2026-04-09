@@ -81,3 +81,20 @@
 
 ### Constraints
 - **Error Transparency:** Map explicit Toaster notifications targeting LLM failures (e.g. rate limits) with actionable hints to maintain the high-end Apple-meets-Linear professional aesthetic.
+
+## Phase 6 Decisions
+
+**Date:** 2026-04-09
+
+### Scope
+- **Deployment Platform:** Render for Backend (Web Service) + Postgres DB + Frontend (Static Site). Version Control via GitHub.
+- **Repository Setup:** GitHub repo required as the source of truth to drive Auto-Deployments.
+
+### Approach
+- **Chose:** Option A: Multi-Service Deployment.
+- **Reason:** Leverages Render's Free Tier for Static Sites (React). Prevents paying compute for serving static assets. Separation of concerns prevents frontend crashing if backend goes down.
+
+### Constraints
+- **CORS Requirements:** Backend `main.py` must use dynamic `CORS_ORIGINS` env var (or wildcard for demo) to accept requests from Render static site URL.
+- **Frontend Environment:** React frontend must use standard fallback env vars (e.g. `import.meta.env.VITE_API_URL || "http://localhost:8000"`) targeting Render backend.
+- **Sleepy DB/Backend:** Free tier spins down; remember to ping the frontend 5 mins early for demos.

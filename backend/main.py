@@ -3,11 +3,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlmodel import Session, select
 from typing import List
 
-from .auth import verify_api_key
-from .schemas import DistillRequest, SOPDistilled
-from .ai_service import distill_sop
-from .database import get_session
-from .models import SOP, Step, EdgeCase
+from auth import verify_api_key
+from schemas import DistillRequest, SOPDistilled
+from ai_service import distill_sop
+from database import get_session
+from models import SOP, Step, EdgeCase
 
 app = FastAPI(
     title="ShadowSOP API"

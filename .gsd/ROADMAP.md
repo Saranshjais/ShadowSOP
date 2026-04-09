@@ -35,3 +35,8 @@
 **Status**: ✅ Complete
 **Objective**: Loading skeletons, error handling, Markdown Export.
 **Requirements**: REQ-08
+
+### Phase 6: Deployment
+**Status**: 🏃 In Progress
+**Objective**: Deploy the application on GitHub and host it on Render (Multi-service).
+**Requirements**: N/A

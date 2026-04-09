@@ -72,9 +72,13 @@ export default function Forge({ onSave, onError }: { onSave?: () => void, onErro
       const data = await response.json();
       setTitle(data.title || "Distilled SOP");
       reset({ steps: data.steps || [] });
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      if (onError) onError("Gemini: Input too vague. Add more context to the source text.");
+      if (err.message === "Failed to fetch" || err.message === "NetworkError when attempting to fetch resource.") {
+        if (onError) onError("Connection Refused: Wait! Your backend Uvicorn server is offline! Start it first.");
+      } else {
+        if (onError) onError("Gemini Error: Check your terminal or try adding more context!");
+      }
     } finally {
       setIsLoading(false);
     }

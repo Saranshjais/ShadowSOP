@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from google import genai
-from .schemas import SOPDistilled
+from schemas import SOPDistilled
 
 load_dotenv()
 

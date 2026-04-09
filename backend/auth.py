@@ -1,7 +1,7 @@
 from fastapi import Header, HTTPException, Depends
 from sqlmodel import Session, select
-from .database import get_session
-from .models import Company
+from database import get_session
+from models import Company
 
 def verify_api_key(
     x_api_key: str = Header(...),
